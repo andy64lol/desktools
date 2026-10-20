@@ -1,0 +1,9 @@
+[package]
+name = "desktools"
+version = "0.1.0"
+edition = "2024"
+description = "Create and edit .desktop launchers"
+license = "MIT"
+
+[dependencies]
+iced = "0.14.0"

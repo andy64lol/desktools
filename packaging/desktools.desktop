@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=desktools
+Comment=Create and edit .desktop launchers
+Exec=desktools
+Icon=applications-other
+Terminal=false
+Categories=Utility;
+Keywords=desktop;launcher;shortcut;editor;
