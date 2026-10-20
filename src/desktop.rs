@@ -334,7 +334,11 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
 
-        fs::write(dir.join("pre-existing.desktop"), "[Desktop Entry]\nName=Firefox\n").unwrap();
+        fs::write(
+            dir.join("pre-existing.desktop"),
+            "[Desktop Entry]\nName=Firefox\n",
+        )
+        .unwrap();
         fs::write(
             dir.join("mine.desktop"),
             "[Desktop Entry]\nName=Mine\nX-Desktools=true\n",

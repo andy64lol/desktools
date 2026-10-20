@@ -1,15 +1,15 @@
 mod desktop;
 mod settings;
 
-use desktop::{DesktopEntry, COMMON_CATEGORIES, list_entries};
-use settings::{Settings, ThemeMode};
+use desktop::{COMMON_CATEGORIES, DesktopEntry, list_entries};
 use iced::widget::{
     button, checkbox, column, container, pick_list, row, rule, scrollable, text, text_input,
 };
 use iced::{
-    theme, window, Alignment, Background, Border, Color, Element, Fill, Font, Subscription, Task,
-    Theme,
+    Alignment, Background, Border, Color, Element, Fill, Font, Subscription, Task, Theme, theme,
+    window,
 };
+use settings::{Settings, ThemeMode};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -104,9 +104,7 @@ fn hairline(colors: Colors) -> impl Fn(&Theme) -> rule::Style {
     }
 }
 
-fn button_style(
-    colors: Colors,
-) -> impl Fn(&Theme, button::Status) -> button::Style {
+fn button_style(colors: Colors) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |_theme, status| {
         let base = button::Style {
             background: Some(Background::Color(colors.surface)),
@@ -142,9 +140,7 @@ fn button_style(
     }
 }
 
-fn primary_button(
-    colors: Colors,
-) -> impl Fn(&Theme, button::Status) -> button::Style {
+fn primary_button(colors: Colors) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |_theme, status| {
         let base = button::Style {
             background: Some(Background::Color(colors.ink)),
@@ -178,9 +174,7 @@ fn primary_button(
     }
 }
 
-fn danger_button(
-    colors: Colors,
-) -> impl Fn(&Theme, button::Status) -> button::Style {
+fn danger_button(colors: Colors) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |_theme, status| {
         let base = button::Style {
             background: Some(Background::Color(colors.surface)),
@@ -212,9 +206,7 @@ fn danger_button(
     }
 }
 
-fn card_style(
-    colors: Colors,
-) -> impl Fn(&Theme, button::Status) -> button::Style {
+fn card_style(colors: Colors) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |_theme, status| {
         let base = button::Style {
             background: Some(Background::Color(colors.surface)),
@@ -243,9 +235,7 @@ fn card_style(
     }
 }
 
-fn input_style(
-    colors: Colors,
-) -> impl Fn(&Theme, text_input::Status) -> text_input::Style {
+fn input_style(colors: Colors) -> impl Fn(&Theme, text_input::Status) -> text_input::Style {
     move |_theme, status| {
         let base = text_input::Style {
             background: Background::Color(colors.surface),
@@ -278,9 +268,7 @@ fn input_style(
     }
 }
 
-fn pick_list_style(
-    colors: Colors,
-) -> impl Fn(&Theme, pick_list::Status) -> pick_list::Style {
+fn pick_list_style(colors: Colors) -> impl Fn(&Theme, pick_list::Status) -> pick_list::Style {
     move |_theme, status| {
         let base = pick_list::Style {
             text_color: colors.ink,
@@ -308,9 +296,7 @@ fn pick_list_style(
     }
 }
 
-fn checkbox_style(
-    colors: Colors,
-) -> impl Fn(&Theme, checkbox::Status) -> checkbox::Style {
+fn checkbox_style(colors: Colors) -> impl Fn(&Theme, checkbox::Status) -> checkbox::Style {
     move |_theme, status| {
         let (is_checked, is_hovered, is_disabled) = match status {
             checkbox::Status::Active { is_checked } => (is_checked, false, false),
@@ -319,7 +305,11 @@ fn checkbox_style(
         };
 
         let (background, icon_color, border_color) = if is_disabled {
-            (colors.surface, dim(colors.ink, 0.35), dim(colors.border, 0.5))
+            (
+                colors.surface,
+                dim(colors.ink, 0.35),
+                dim(colors.border, 0.5),
+            )
         } else if is_checked && is_hovered {
             (colors.cyan, colors.ink, colors.border)
         } else if is_checked {
@@ -722,7 +712,12 @@ fn update_editor(app: &mut App, id: window::Id, message: EditorMessage) -> Task<
         EditorMessage::NoDisplay(value) => editor.form.no_display = value,
         EditorMessage::StartupNotify(value) => editor.form.startup_notify = value,
         EditorMessage::AddCategory(category) => {
-            let current = editor.form.categories.trim().trim_end_matches(';').to_string();
+            let current = editor
+                .form
+                .categories
+                .trim()
+                .trim_end_matches(';')
+                .to_string();
 
             editor.form.categories = if current.is_empty() {
                 format!("{category};")
@@ -1184,7 +1179,11 @@ fn editor_form<'a>(app: &'a App, id: window::Id, editor: &'a Editor) -> Element<
     let colors = app.colors();
 
     let is_new = editor.form.path.is_none();
-    let title = if is_new { "New launcher" } else { "Edit launcher" };
+    let title = if is_new {
+        "New launcher"
+    } else {
+        "Edit launcher"
+    };
 
     let subtitle = match &editor.form.path {
         Some(path) => path.display().to_string(),
@@ -1243,10 +1242,7 @@ fn editor_form<'a>(app: &'a App, id: window::Id, editor: &'a Editor) -> Element<
                         "Working directory",
                         text_input("/home/me/projects", &editor.form.working_dir)
                             .on_input(move |value| {
-                                Message::Editor(
-                                    id,
-                                    EditorMessage::Field(Field::WorkingDir, value),
-                                )
+                                Message::Editor(id, EditorMessage::Field(Field::WorkingDir, value))
                             })
                             .padding([7, 9])
                             .size(13)
@@ -1278,10 +1274,7 @@ fn editor_form<'a>(app: &'a App, id: window::Id, editor: &'a Editor) -> Element<
                         "Generic name",
                         text_input("Web browser, text editor...", &editor.form.generic_name)
                             .on_input(move |value| {
-                                Message::Editor(
-                                    id,
-                                    EditorMessage::Field(Field::GenericName, value),
-                                )
+                                Message::Editor(id, EditorMessage::Field(Field::GenericName, value))
                             })
                             .padding([7, 9])
                             .size(13)
@@ -1309,10 +1302,7 @@ fn editor_form<'a>(app: &'a App, id: window::Id, editor: &'a Editor) -> Element<
                     column![
                         text_input("Utility;Development;", &editor.form.categories)
                             .on_input(move |value| {
-                                Message::Editor(
-                                    id,
-                                    EditorMessage::Field(Field::Categories, value),
-                                )
+                                Message::Editor(id, EditorMessage::Field(Field::Categories, value))
                             })
                             .padding([7, 9])
                             .size(13)
@@ -1412,7 +1402,10 @@ fn preview(editor: &Editor, colors: Colors) -> Element<'_, Message> {
     container(
         column![
             row![
-                text("Preview").size(11).font(BOLD).color(dim(colors.ink, 0.55)),
+                text("Preview")
+                    .size(11)
+                    .font(BOLD)
+                    .color(dim(colors.ink, 0.55)),
                 row![].width(Fill),
                 text(editor.form.file_name())
                     .size(11)
@@ -1437,7 +1430,12 @@ fn preview(editor: &Editor, colors: Colors) -> Element<'_, Message> {
     .into()
 }
 
-fn status_bar(colors: Colors, status: &str, is_error: bool, trailing: String) -> Element<'_, Message> {
+fn status_bar(
+    colors: Colors,
+    status: &str,
+    is_error: bool,
+    trailing: String,
+) -> Element<'_, Message> {
     column![
         rule::horizontal(HAIRLINE as u32).style(hairline(colors)),
         container(
@@ -1450,7 +1448,15 @@ fn status_bar(colors: Colors, status: &str, is_error: bool, trailing: String) ->
         )
         .padding([8, 16])
         .width(Fill)
-        .style(plain(colors, if is_error { colors.magenta } else { colors.surface }, 0.0)),
+        .style(plain(
+            colors,
+            if is_error {
+                colors.magenta
+            } else {
+                colors.surface
+            },
+            0.0
+        )),
     ]
     .spacing(0)
     .into()
@@ -1478,11 +1484,8 @@ fn labeled<'a>(
 ) -> Element<'a, Message> {
     let input: Element<'a, Message> = input.into();
 
-    column![
-        text(label).size(12).color(dim(colors.ink, 0.6)),
-        input,
-    ]
-    .spacing(5)
-    .width(Fill)
-    .into()
+    column![text(label).size(12).color(dim(colors.ink, 0.6)), input,]
+        .spacing(5)
+        .width(Fill)
+        .into()
 }
