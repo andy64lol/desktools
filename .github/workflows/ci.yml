@@ -7,6 +7,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -21,7 +24,7 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install toolchain
-        run: pacman -Syu --noconfirm --needed base-devel rust git
+        run: pacman -Syu --noconfirm --needed base-devel rust git pkgconf wayland
 
       - uses: actions/checkout@v4
 

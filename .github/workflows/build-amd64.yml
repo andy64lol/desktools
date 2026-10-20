@@ -10,6 +10,9 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions:
+  contents: read
+
 concurrency:
   group: build-amd64-${{ github.ref }}
   cancel-in-progress: true
@@ -30,7 +33,7 @@ jobs:
             archlinux:latest \
             bash -c '
               set -euo pipefail
-              pacman -Syu --noconfirm --needed base-devel rust
+              pacman -Syu --noconfirm --needed base-devel rust pkgconf wayland
               useradd -m builder
               chown -R builder:builder /work
               runuser -u builder -- env HOME=/home/builder make arch

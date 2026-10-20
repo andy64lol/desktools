@@ -1,4 +1,4 @@
-name: Build arm64
+name: Build Arch Linux ARM package
 
 on:
   push:
@@ -10,56 +10,64 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions:
+  contents: read
+
 concurrency:
   group: build-arm64-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  package:
-    name: Package (aarch64)
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
+  build-aarch64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Build package in Arch Linux ARM
+        uses: uraimo/run-on-arch-action@v3
         with:
-          platforms: arm64
+          arch: aarch64
+          distro: archarm_latest
+          run: |
+            set -e
 
-      - name: Build package
-        run: |
-          docker run --rm \
-            --platform linux/arm64 \
-            -v "$PWD:/work" \
-            -w /work \
-            menci/archlinuxarm:base-devel \
-            bash -c '
-              set -euo pipefail
-              pacman -Syu --noconfirm --needed base-devel rust
-              useradd -m builder
-              chown -R builder:builder /work
-              runuser -u builder -- env HOME=/home/builder make arch
+            pacman -Syu --noconfirm
+            pacman -S --needed --noconfirm \
+              base-devel rust cargo pkgconf \
+              cmake git wayland
+
+            useradd -m builder
+            chown -R builder:builder "$PWD"
+
+            su builder -s /bin/bash -c '
+              set -e
+              make dist
+              cp dist/desktools-0.1.0.tar.gz \
+                packaging/arch/
+              cd packaging/arch
+              makepkg --noconfirm --cleanbuild
             '
 
-      - name: Upload package
+      - name: Upload ARM64 package
         uses: actions/upload-artifact@v4
         with:
-          name: desktools-aarch64
-          path: dist/*.pkg.tar.zst
+          name: desktools-arch-aarch64
+          path: packaging/arch/*.pkg.tar.zst
           if-no-files-found: error
 
   release:
-    name: Attach package to release
+    name: Attach ARM64 package to release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: package
+    needs: build-aarch64
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: desktools-aarch64
+          name: desktools-arch-aarch64
           path: release
 
       - name: Upload release asset
