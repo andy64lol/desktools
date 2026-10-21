@@ -29,6 +29,8 @@ jobs:
           distro: archarm_latest
           run: |
             set -e
+            # The QEMU kernel used by this runner does not support Landlock.
+            sed -i '/^\[options\]/a DisableSandbox' /etc/pacman.conf
             pacman -Syu --noconfirm
             pacman -S --needed --noconfirm \
               base-devel rust cargo pkgconf cmake git wayland
