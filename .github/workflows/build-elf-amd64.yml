@@ -1,0 +1,60 @@
+name: Build ELF amd64
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-elf-amd64-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ELF (x86_64)
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain and native dependencies
+        run: pacman -Syu --noconfirm --needed base-devel rust pkgconf wayland
+
+      - name: Build ELF
+        run: |
+          cargo build --release --locked
+          install -Dm755 target/release/desktools dist/desktools-x86_64
+
+      - name: Upload ELF
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktools-elf-amd64
+          path: dist/desktools-x86_64
+          if-no-files-found: error
+
+  release:
+    name: Attach ELF to release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktools-elf-amd64
+          path: release
+
+      - name: Upload ELF release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" || true
+          gh release upload "$GITHUB_REF_NAME" release/desktools-x86_64 --clobber

@@ -55,7 +55,8 @@ sudo make uninstall
 ## Arch Linux
 
 `make arch` builds a pacman package using the `PKGBUILD` in `packaging/arch/`
-and leaves the `.pkg.tar.zst` in `dist/`.
+and leaves both the `.pkg.tar.zst` and a standalone ELF named
+`desktools-<architecture>` in `dist/`.
 
 ```sh
 make arch

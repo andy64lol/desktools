@@ -1,4 +1,4 @@
-name: Build Arch Linux ARM package
+name: Build Arch package arm64
 
 on:
   push:
@@ -7,70 +7,59 @@ on:
   pull_request:
   workflow_dispatch:
 
-env:
-  CARGO_TERM_COLOR: always
-
 permissions:
   contents: read
 
 concurrency:
-  group: build-arm64-${{ github.ref }}
+  group: build-arch-arm64-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-aarch64:
+  package:
+    name: Package (aarch64)
     runs-on: ubuntu-24.04
     timeout-minutes: 360
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build package in Arch Linux ARM
+      - name: Build ELF and Arch package in Arch Linux ARM
         uses: uraimo/run-on-arch-action@v3
         with:
           arch: aarch64
           distro: archarm_latest
           run: |
             set -e
-
             pacman -Syu --noconfirm
             pacman -S --needed --noconfirm \
-              base-devel rust cargo pkgconf \
-              cmake git wayland
-
+              base-devel rust cargo pkgconf cmake git wayland
             useradd -m builder
             chown -R builder:builder "$PWD"
-
             su builder -s /bin/bash -c '
               set -e
-              make dist
-              cp dist/desktools-0.1.0.tar.gz \
-                packaging/arch/
-              cd packaging/arch
-              makepkg --noconfirm --cleanbuild
+              make arch
             '
 
-      - name: Upload ARM64 package
+      - name: Upload Arch package
         uses: actions/upload-artifact@v4
         with:
-          name: desktools-arch-aarch64
-          path: packaging/arch/*.pkg.tar.zst
+          name: desktools-arch-arm64
+          path: dist/*.pkg.tar.zst
           if-no-files-found: error
 
   release:
-    name: Attach ARM64 package to release
+    name: Attach Arch package to release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build-aarch64
+    needs: package
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: desktools-arch-aarch64
+          name: desktools-arch-arm64
           path: release
 
-      - name: Upload release asset
+      - name: Upload Arch package release asset
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

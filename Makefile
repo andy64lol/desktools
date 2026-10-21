@@ -1,5 +1,6 @@
 APP         := desktools
 VERSION     := $(shell sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+ARCH        := $(shell uname -m)
 PREFIX      ?= /usr/local
 DESTDIR     ?=
 CARGO       ?= cargo
@@ -11,7 +12,7 @@ LICENSEDIR  := $(DESTDIR)$(PREFIX)/share/licenses/$(APP)
 PKGDIR      := packaging/arch
 DISTDIR     := dist
 TARBALL     := $(DISTDIR)/$(APP)-$(VERSION).tar.gz
-SOURCEFILES := Cargo.toml Cargo.lock src packaging README.md LICENSE Makefile .gitignore
+SOURCEFILES := Cargo.toml Cargo.lock src packaging/desktools.desktop packaging/arch/PKGBUILD README.md LICENSE Makefile .gitignore
 
 .PHONY: all build release run check clippy fmt test install uninstall dist arch clean help
 
@@ -57,10 +58,11 @@ dist: $(TARBALL)
 arch: dist
 	@command -v makepkg >/dev/null || { echo "makepkg not found: install base-devel"; exit 1; }
 	cp $(TARBALL) $(PKGDIR)/
-	cd $(PKGDIR) && makepkg -f
+	cd $(PKGDIR) && makepkg --noconfirm --cleanbuild -f
 	mv $(PKGDIR)/$(APP)-$(VERSION)-*.pkg.tar.* $(DISTDIR)/
+	install -m755 $(PKGDIR)/pkg/$(APP)/usr/bin/$(APP) $(DISTDIR)/$(APP)-$(ARCH)
 	rm -rf $(PKGDIR)/src $(PKGDIR)/pkg $(PKGDIR)/$(APP)-$(VERSION).tar.gz
-	@echo "Package written to $(DISTDIR)/"
+	@echo "Executable and package written to $(DISTDIR)/"
 
 clean:
 	$(CARGO) clean
@@ -78,5 +80,5 @@ help:
 	@echo "  install    install to PREFIX (default /usr/local, supports DESTDIR)"
 	@echo "  uninstall  remove installed files"
 	@echo "  dist       source tarball in dist/"
-	@echo "  arch       build an Arch package with makepkg (output in dist/)"
+	@echo "  arch       build an Arch package and standalone ELF in dist/"
 	@echo "  clean      remove build artifacts"
